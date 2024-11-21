@@ -1,23 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="index.css">
-    <title>Ma Page Web Simple</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recensement CVE</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background-color: #f4f4f4; }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Ma Page Web Simple</h1>
-    </header>
-    <main>
-        <section>
-            <h2>Bienvenue</h2>
-            <p>Ceci est une page web simple créée avec HTML et CSS.</p>
-        </section>
-    </main>
-    <footer>
-        <p>© 2024 Ma Page Web Simple</p>
-    </footer>
+  <h1>Recensement des CVE</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Description</th>
+        <th>CVSS</th>
+        <th>Lien</th>
+      </tr>
+    </thead>
+    <tbody id="cveTable"></tbody>
+  </table>
+
+  <script>
+    const cveData = [
+      { id: "CVE-2024-12345", description: "Buffer overflow in XYZ application.", cvss: 9.8, link: "https://nvd.nist.gov/vuln/detail/CVE-2024-12345" },
+      { id: "CVE-2024-67890", description: "SQL Injection in ABC service.", cvss: 7.5, link: "https://nvd.nist.gov/vuln/detail/CVE-2024-67890" }
+    ];
+
+    const tableBody = document.getElementById("cveTable");
+    cveData.forEach(cve => {
+      const row = `<tr>
+        <td>${cve.id}</td>
+        <td>${cve.description}</td>
+        <td>${cve.cvss}</td>
+        <td><a href="${cve.link}" target="_blank">Lien</a></td>
+      </tr>`;
+      tableBody.innerHTML += row;
+    });
+  </script>
 </body>
 </html>
