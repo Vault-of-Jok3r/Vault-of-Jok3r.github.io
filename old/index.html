@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Outils Cybersécurité</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Mini Outils Cybersécurité</h1>
+    </header>
+
+    <main>
+        <!-- Générateur de mot de passe -->
+        <section class="tool">
+            <h2>Générateur de mot de passe</h2>
+            <button id="generatePassword">Générer un mot de passe</button>
+            <input type="text" id="passwordOutput" readonly>
+        </section>
+
+        <!-- Testeur de mot de passe -->
+        <section class="tool">
+            <h2>Testeur de mot de passe</h2>
+            <input type="password" id="passwordTestInput" placeholder="Entrez un mot de passe">
+            <button id="testPassword">Tester la force</button>
+            <p id="passwordStrength"></p>
+        </section>
+
+        <!-- Convertisseur binaire/hexadécimal/décimal -->
+        <section class="tool">
+            <h2>Convertisseur Binaire/Hexadécimal/Décimal</h2>
+            <input type="text" id="inputNumber" placeholder="Entrez un nombre">
+            <button id="convertNumber">Convertir</button>
+            <p id="binaryOutput"></p>
+            <p id="hexOutput"></p>
+            <p id="decimalOutput"></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Mini Outils Cybersécurité</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
