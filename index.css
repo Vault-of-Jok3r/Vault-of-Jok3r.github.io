@@ -1,0 +1,89 @@
+/* Corps de page */
+body {
+  margin: 0; 
+  padding: 0;
+  background: #4A5472;
+  color: #fff;
+  font-family: sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin: 0;
+  padding: 20px 0;
+}
+
+/* Apparence de base des "cartes" */
+.card {
+  background: #272A38;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px auto;  /* marge verticale par défaut */
+  width: 90%;
+  box-sizing: border-box;
+}
+
+/* Pour réduire l'espace en bas de la card top10 si besoin */
+#top10-card {
+  margin-bottom: 0 !important; /* on annule la marge inférieure si nécessaire */
+}
+
+.charts {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.chart {
+  width: 380px; 
+  margin: 10px;
+}
+
+.chart h2, .chart h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.controls {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* SVG pour les bar charts */
+svg {
+  display: block;
+  margin: 0 auto;
+  width: 430px; 
+  height: 280px; 
+}
+
+/* Barres et axes */
+.bar {
+  fill: steelblue;
+  transition: fill 0.3s;
+}
+
+.bar:hover {
+  fill: orange;
+}
+
+.axis text {
+  font-size: 10px;
+  fill: #fff;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #ccc;
+  shape-rendering: crispEdges;
+}
+
+/* Carte du monde : conserver 960x500 */
+#world-map {
+  width: 960px !important;
+  height: 500px !important;
+  display: block;
+  margin: 0 auto;
+}

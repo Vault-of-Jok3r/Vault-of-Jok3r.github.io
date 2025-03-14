@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Visualisation Interactive des Attaques Ransomware</title>
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+  <h1>Visualisation Interactive des Attaques Ransomware</h1>
+
+  <!-- Bloc des graphiques d'attaques -->
+  <div class="card">
+    <div class="charts">
+      <!-- Attaques par Heure -->
+      <div class="chart" id="daily-chart-block">
+        <h2>Attaques par Heure</h2>
+        <div class="controls">
+          <label for="day-input">Choisir la date :</label>
+          <input type="date" id="day-input" />
+        </div>
+        <svg id="chart-day" width="460" height="350"></svg>
+      </div>
+
+      <!-- Attaques par Jour -->
+      <div class="chart" id="monthly-chart-block">
+        <h2>Attaques par Jour</h2>
+        <div class="controls">
+          <label for="month-input">Choisir le mois :</label>
+          <input type="month" id="month-input" />
+        </div>
+        <svg id="chart-month" width="460" height="350"></svg>
+      </div>
+
+      <!-- Attaques par Mois -->
+      <div class="chart" id="yearly-chart-block">
+        <h2>Attaques par Mois</h2>
+        <div class="controls">
+          <label for="year-input">Choisir l'année :</label>
+          <input type="number" id="year-input" min="2000" max="2100" step="1" />
+        </div>
+        <svg id="chart-year" width="460" height="350"></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carte du monde -->
+  <div class="card">
+    <h2 style="text-align:center;">Carte du Monde (Année choisie)</h2>
+    <div class="controls" style="text-align:center;">
+      <label for="map-year-input">Choisir l'année (Carte) :</label>
+      <input type="number" id="map-year-input" min="2000" max="2100" step="1" />
+    </div>
+    <svg id="world-map" width="960" height="500"></svg>
+  </div>
+
+  <!-- Card Top 10 Groupes (avec un id pour cibler la marge) -->
+  <div class="card" id="top10-card">
+    <h2 style="text-align:center;">Top 10 Groupes les plus actifs</h2>
+    <div class="charts">
+      <!-- Graphique horizontal pour le jour -->
+      <div class="chart" id="group-daily-chart-block">
+        <h3>Par Jour</h3>
+        <div class="controls">
+          <label for="group-day-input">Jour :</label>
+          <input type="date" id="group-day-input" />
+        </div>
+        <svg id="chart-group-day" width="460" height="350"></svg>
+      </div>
+      <!-- Graphique horizontal pour le mois -->
+      <div class="chart" id="group-monthly-chart-block">
+        <h3>Par Mois</h3>
+        <div class="controls">
+          <label for="group-month-input">Mois :</label>
+          <input type="month" id="group-month-input" />
+        </div>
+        <svg id="chart-group-month" width="460" height="350"></svg>
+      </div>
+      <!-- Graphique horizontal pour l'année -->
+      <div class="chart" id="group-yearly-chart-block">
+        <h3>Par Année</h3>
+        <div class="controls">
+          <label for="group-year-input">Année :</label>
+          <input type="number" id="group-year-input" min="2000" max="2100" step="1" />
+        </div>
+        <svg id="chart-group-year" width="460" height="350"></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteneur des 2 cartes du bas (Dernière Attaque & Recherche Groupe) -->
+  <div id="bottom-cards-container" 
+       style="display: flex; 
+              justify-content: space-between; 
+              gap: 20px; 
+              width: 90%; 
+              margin: 20px auto;">
+    
+    <!-- Sous-carte 1 : Dernière Attaque -->
+    <div class="card" style="width: 48%; margin: 0;">
+      <h2>Dernière Attaque</h2>
+      <p><strong>Titre :</strong> <span id="last-attack-title"></span></p>
+      <p><strong>Groupe :</strong> <span id="last-attack-group"></span></p>
+      <p><strong>Pays :</strong> <span id="last-attack-country"></span></p>
+      <p><strong>Date de publication :</strong> <span id="last-attack-published"></span></p>
+    </div>
+
+    <!-- Sous-carte 2 : Recherche d'un Groupe -->
+    <div class="card" style="width: 48%; margin: 0;">
+      <h2>Recherche d'un Groupe</h2>
+      <div class="controls">
+        <label for="search-group-input">Nom du groupe :</label>
+        <input type="text" id="search-group-input" placeholder="ex: akira" />
+        <button id="search-group-btn">Chercher</button>
+      </div>
+      <div id="group-search-result" style="margin-top:10px;">
+        <!-- Contenu généré en JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- D3 et TopoJSON -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+
+  <!-- Script principal -->
+  <script src="script.js"></script>
+</body>
+</html>
