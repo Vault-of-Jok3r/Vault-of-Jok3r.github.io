@@ -1,0 +1,136 @@
+/* Corps de page */
+body {
+  margin: 0; 
+  padding: 0;
+  background: #4A5472;
+  color: #fff;
+  font-family: sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin: 0;
+  padding: 20px 0;
+}
+
+/* Apparence de base des "cartes" */
+.card {
+  background: #272A38;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px auto;  /* marge verticale par défaut */
+  width: 90%;
+  box-sizing: border-box;
+}
+
+/* Pour réduire l'espace en bas de la card top10 si besoin */
+#top10-card {
+  margin-bottom: 0 !important; /* on annule la marge inférieure si nécessaire */
+}
+
+.charts {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.chart {
+  width: 380px; 
+  margin: 10px;
+}
+
+.chart h2, .chart h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.controls {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* SVG pour les bar charts */
+svg {
+  display: block;
+  margin: 0 auto;
+  width: 430px; 
+  height: 280px; 
+}
+
+/* Barres et axes */
+.bar {
+  fill: steelblue;
+  transition: fill 0.3s;
+}
+
+.bar:hover {
+  fill: orange;
+}
+
+.axis text {
+  font-size: 10px;
+  fill: #fff;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #ccc;
+  shape-rendering: crispEdges;
+}
+
+/* Carte du monde : conserver 960x500 */
+#world-map {
+  width: 1100px !important;
+  height: 550px !important;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Grille pour les pays dans la recherche de groupe */
+.grid-pays {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+  grid-template-rows: repeat(3, auto);   /* 3 lignes fixes */
+  gap: 10px;
+  margin-top: 10px;
+  min-height: 240px; /* pour que la grille reste haute même s'il y a moins de 12 items */
+}
+
+.grid-item {
+  background: #363c56;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  color: #fff;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Pagination */
+.pagination {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.page-btn {
+  background: #555c7a;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  margin: 0 3px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-btn:disabled {
+  background: #999;
+  cursor: default;
+}
+
+#bottom-cards-container .card {
+  align-items: stretch;
+  
+  min-height: 100%;
+}
