@@ -50,7 +50,7 @@
       <label for="map-year-input">Choisir l'année (Carte) :</label>
       <input type="number" id="map-year-input" min="2000" max="2100" step="1" />
     </div>
-    <svg id="world-map" width="960" height="500"></svg>
+    <svg id="world-map" width="1100" height="550"></svg>
   </div>
 
   <!-- Card Top 10 Groupes (avec un id pour cibler la marge) -->
@@ -88,24 +88,30 @@
   </div>
 
   <!-- Conteneur des 2 cartes du bas (Dernière Attaque & Recherche Groupe) -->
-  <div id="bottom-cards-container" 
-       style="display: flex; 
-              justify-content: space-between; 
-              gap: 20px; 
-              width: 90%; 
-              margin: 20px auto;">
+  <div id="bottom-cards-container"
+     style="display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            width: 90%;
+            margin: 20px auto;">
     
     <!-- Sous-carte 1 : Dernière Attaque -->
-    <div class="card" style="width: 48%; margin: 0;">
-      <h2>Dernière Attaque</h2>
-      <p><strong>Titre :</strong> <span id="last-attack-title"></span></p>
-      <p><strong>Groupe :</strong> <span id="last-attack-group"></span></p>
-      <p><strong>Pays :</strong> <span id="last-attack-country"></span></p>
-      <p><strong>Date de publication :</strong> <span id="last-attack-published"></span></p>
-    </div>
+    <div class="card" style="width: 48%; margin: 0; display: flex; flex-direction: column; justify-content: center;">
+      <h2 style="margin-top: 0;">Dernière Attaque</h2>
+      <div id="last-attack-content" style="margin: auto 0;">
+        <p><strong>Victime :</strong> <span id="last-attack-title"></span></p>
+        <p><strong>Groupe :</strong> <span id="last-attack-group"></span></p>
+        <p><strong>Pays :</strong> <span id="last-attack-country"></span></p>
+        <p><strong>Date de publication :</strong> <span id="last-attack-published"></span></p>
+        <p><strong>Date de découverte :</strong> <span id="last-attack-discovered"></span></p>
+        <p><strong>Description :</strong> <span id="last-attack-description"></span></p>
+        <p><strong>Secteur :</strong> <span id="last-attack-activity"></span></p>
+        <p><strong>Rançon :</strong> <span id="last-attack-ransom"></span></p>
+      </div>
+    </div>       
 
     <!-- Sous-carte 2 : Recherche d'un Groupe -->
-    <div class="card" style="width: 48%; margin: 0;">
+    <div class="card" style="width: 48%; margin: 0; display: flex; flex-direction: column;">
       <h2>Recherche d'un Groupe</h2>
       <div class="controls">
         <label for="search-group-input">Nom du groupe :</label>
