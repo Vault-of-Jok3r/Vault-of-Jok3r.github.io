@@ -82,8 +82,55 @@ svg {
 
 /* Carte du monde : conserver 960x500 */
 #world-map {
-  width: 960px !important;
-  height: 500px !important;
+  width: 1100px !important;
+  height: 550px !important;
   display: block;
   margin: 0 auto;
+}
+
+/* Grille pour les pays dans la recherche de groupe */
+.grid-pays {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+  grid-template-rows: repeat(3, auto);   /* 3 lignes fixes */
+  gap: 10px;
+  margin-top: 10px;
+  min-height: 240px; /* pour que la grille reste haute même s'il y a moins de 12 items */
+}
+
+.grid-item {
+  background: #363c56;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  color: #fff;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Pagination */
+.pagination {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.page-btn {
+  background: #555c7a;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  margin: 0 3px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-btn:disabled {
+  background: #999;
+  cursor: default;
+}
+
+#bottom-cards-container .card {
+  align-items: stretch;
+  
+  min-height: 100%;
 }
