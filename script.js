@@ -1,5 +1,6 @@
 let rawData = [];
 let iso2ById = {};
+let countryNamesByIso2 = {};
 
 // Charger le mapping ISO depuis le fichier CSV et les données ransomware depuis l'API
 Promise.all([
@@ -9,6 +10,7 @@ Promise.all([
   // Créer l'objet de mapping à partir du CSV
   mappingData.forEach(d => {
     iso2ById[d.iso_numeric] = d.iso_alpha2;
+    countryNamesByIso2[d.iso_alpha2] = d.country_name;
   });
 
   rawData = postsData;
@@ -284,15 +286,45 @@ function updateGroupYearlyChart() {
 function updateLastAttackInfo() {
   if (!rawData || rawData.length === 0) return;
   const lastAttack = rawData.reduce((acc, cur) => cur.date > acc.date ? cur : acc);
-  document.getElementById("last-attack-title").textContent = lastAttack.post_title || "";
-  document.getElementById("last-attack-group").textContent = lastAttack.group_name || "";
-  document.getElementById("last-attack-country").textContent = lastAttack.country || "";
-  document.getElementById("last-attack-published").textContent = lastAttack.discovered || "";
+
+  const container = document.querySelector("#last-attack-title").parentElement.parentElement;
+  container.innerHTML = `
+    <p><strong>Victime :</strong> ${lastAttack.post_title || "N/A"}</p>
+    <p><strong>Groupe :</strong> ${lastAttack.group_name || "N/A"}</p>
+    <p><strong>Pays :</strong> ${lastAttack.country || "N/A"}</p>
+    <p><strong>Date de publication :</strong> ${lastAttack.published || "N/A"}</p>
+    <p><strong>Date de découverte :</strong> ${lastAttack.discovered || "N/A"}</p>
+    <p><strong>Description :</strong> ${lastAttack.description || "N/A"}</p>
+    <p><strong>Secteur :</strong> ${lastAttack.activity || "N/A"}</p>
+    <p><strong>Rançon :</strong> ${(lastAttack.extrainfos && lastAttack.extrainfos.ransom) || "N/A"}</p>
+    ${lastAttack.website ? `<p><strong>Site web :</strong> <a href="http://${lastAttack.website}" target="_blank">${lastAttack.website}</a></p>` : ""}
+    ${lastAttack.duplicates && lastAttack.duplicates.length > 0 ? `
+      <p><strong>Duplicatas :</strong></p>
+      <ul>
+        ${lastAttack.duplicates.map(dup => `
+          <li>
+            Groupe : ${dup.group || "?"} —
+            Date : ${dup.date || "?"} —
+            <a href="${dup.link}" target="_blank">Lien</a>
+          </li>
+        `).join("")}
+      </ul>
+    ` : ""}
+  `;
 }
 
 // ------------------------------
 // 8) Recherche d'un Groupe
 // ------------------------------
+
+function countryCodeToFlagEmoji(code) {
+  if (!code || code === "N/A") return "❓";
+  return code
+    .toUpperCase()
+    .replace(/./g, char => 
+      String.fromCodePoint(127397 + char.charCodeAt()));
+}
+
 function searchGroup() {
   const groupName = document.getElementById("search-group-input").value.trim();
   const resultDiv = document.getElementById("group-search-result");
@@ -301,33 +333,72 @@ function searchGroup() {
     resultDiv.innerHTML = "<p>Veuillez entrer un nom de groupe.</p>";
     return;
   }
+
   const filtered = rawData.filter(d =>
     d.group_name && d.group_name.toLowerCase() === groupName.toLowerCase()
   );
+
   if (filtered.length === 0) {
     resultDiv.innerHTML = `<p>Aucune attaque trouvée pour le groupe "<strong>${groupName}</strong>".</p>`;
     return;
   }
+
   const totalAttacks = filtered.length;
   const attacksByCountry = d3.rollup(
     filtered,
     v => v.length,
-    d => d.country
+    d => d.country || "N/A"
   );
+
   const sortedCountries = Array.from(attacksByCountry, ([country, count]) => ({ country, count }))
     .sort((a, b) => b.count - a.count);
-  let html = `<p>Groupe : <strong>${groupName}</strong></p>`;
-  html += `<p>Nombre total d'attaques : <strong>${totalAttacks}</strong></p>`;
-  if (sortedCountries.length > 0) {
-    html += `<p>Pays touchés (du plus au moins impacté) :</p><ul>`;
-    sortedCountries.forEach(item => {
-      html += `<li>${item.country || "N/A"} : ${item.count}</li>`;
+
+  let currentPage = 1;
+  const itemsPerPage = 12; // 3 lignes × 4 colonnes
+
+  const renderPage = (page) => {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const currentData = sortedCountries.slice(start, end);
+
+    let html = `<p>Groupe : <strong>${groupName}</strong></p>`;
+    html += `<p>Nombre total d'attaques : <strong>${totalAttacks}</strong></p>`;
+    html += `<div id="group-search-grid" class="grid-pays">`;
+
+    currentData.forEach(item => {
+      const flag = countryCodeToFlagEmoji(item.country);
+      const label = countryNamesByIso2[item.country] || item.country || "Inconnu";
+      html += `
+        <div class="grid-item">
+          <strong>${flag} ${label}</strong><br/>
+          ${item.count} attaque${item.count > 1 ? 's' : ''}
+        </div>`;
+    });    
+
+    html += `</div>`;
+
+    // Pagination
+    const totalPages = Math.ceil(sortedCountries.length / itemsPerPage);
+    if (totalPages > 1) {
+      html += `<div class="pagination">`;
+      for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="page-btn" data-page="${i}" ${i === page ? 'disabled' : ''}>${i}</button>`;
+      }
+      html += `</div>`;
+    }
+
+    resultDiv.innerHTML = html;
+
+    // Rebind events
+    document.querySelectorAll(".page-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentPage = +btn.dataset.page;
+        renderPage(currentPage);
+      });
     });
-    html += `</ul>`;
-  } else {
-    html += `<p>Aucun pays renseigné.</p>`;
-  }
-  resultDiv.innerHTML = html;
+  };
+
+  renderPage(currentPage);
 }
 
 // ------------------------------
