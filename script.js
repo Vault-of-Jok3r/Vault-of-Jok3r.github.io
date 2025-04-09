@@ -296,7 +296,6 @@ function updateLastAttackInfo() {
     <p><strong>Date de découverte :</strong> ${lastAttack.discovered || "N/A"}</p>
     <p><strong>Description :</strong> ${lastAttack.description || "N/A"}</p>
     <p><strong>Secteur :</strong> ${lastAttack.activity || "N/A"}</p>
-    <p><strong>Rançon :</strong> ${(lastAttack.extrainfos && lastAttack.extrainfos.ransom) || "N/A"}</p>
     ${lastAttack.website ? `<p><strong>Site web :</strong> <a href="http://${lastAttack.website}" target="_blank">${lastAttack.website}</a></p>` : ""}
     ${lastAttack.duplicates && lastAttack.duplicates.length > 0 ? `
       <p><strong>Duplicatas :</strong></p>
