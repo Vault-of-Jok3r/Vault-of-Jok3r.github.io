@@ -63,6 +63,12 @@ Promise.all([
   document.getElementById("search-group-input").addEventListener("keyup", (e) => {
     if (e.key === "Enter") searchGroup();
   });
+
+  updateVictimHistory();
+  document.getElementById("victim-search-btn").addEventListener("click", searchVictim);
+  document.getElementById("victim-search-input").addEventListener("keyup", (e) => {
+    if (e.key === "Enter") searchVictim();
+  });
 });
 
 // ------------------------------
@@ -492,4 +498,123 @@ function updateWorldMap(selectedYear) {
         .call(legendAxis);
     });
   });
+}
+
+function updateVictimHistory() {
+  const list = document.getElementById("victim-list");
+  const pagination = document.getElementById("victim-pagination");
+
+  const victims = rawData
+    .filter(d => d.post_title)
+    .sort((a, b) => new Date(b.published) - new Date(a.published));
+
+  let currentPage = 1;
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(victims.length / itemsPerPage);
+
+  function renderPage(page) {
+    currentPage = page;
+
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const currentItems = victims.slice(start, end);
+
+    list.innerHTML = "";
+    currentItems.forEach(v => {
+      const li = document.createElement("li");
+      li.textContent = v.post_title;
+      li.addEventListener("click", () => showVictimDetails(v));
+      list.appendChild(li);
+    });
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    pagination.innerHTML = "";
+
+    const createBtn = (pageNum, text = null, isDisabled = false) => {
+      const btn = document.createElement("button");
+      btn.textContent = text || pageNum;
+      btn.disabled = isDisabled;
+      btn.addEventListener("click", () => renderPage(pageNum));
+      pagination.appendChild(btn);
+    };
+
+    const createEllipsis = (targetPage) => {
+      const btn = document.createElement("button");
+      btn.textContent = "...";
+      btn.addEventListener("click", () => {
+        const input = prompt(`Aller à la page (1 - ${totalPages})`, targetPage);
+        const page = parseInt(input);
+        if (!isNaN(page) && page >= 1 && page <= totalPages) {
+          renderPage(page);
+        }
+      });
+      pagination.appendChild(btn);
+    };
+
+    // Affiche toujours la page 1
+    createBtn(1, "1", currentPage === 1);
+
+    if (totalPages <= 7) {
+      // Cas simple : moins de 7 pages, on affiche tout
+      for (let i = 2; i <= totalPages; i++) {
+        createBtn(i, i, currentPage === i);
+      }
+    } else {
+      if (currentPage <= 4) {
+        // Début
+        for (let i = 2; i <= 5; i++) {
+          createBtn(i, i, currentPage === i);
+        }
+        createEllipsis(6);
+      } else if (currentPage >= totalPages - 3) {
+        // Fin
+        createEllipsis(currentPage - 5);
+        for (let i = totalPages - 4; i < totalPages; i++) {
+          createBtn(i, i, currentPage === i);
+        }
+      } else {
+        // Milieu
+        createEllipsis(currentPage - 5);
+        for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+          createBtn(i, i, currentPage === i);
+        }
+        createEllipsis(currentPage + 5);
+      }
+
+      // Dernière page
+      createBtn(totalPages, totalPages, currentPage === totalPages);
+    }
+  }
+
+  renderPage(currentPage);
+}
+
+function searchVictim() {
+  const input = document.getElementById("victim-search-input").value.trim().toLowerCase();
+  const victim = rawData.find(d => d.post_title && d.post_title.toLowerCase() === input);
+
+  const detailDiv = document.getElementById("victim-detail");
+  if (!victim) {
+    detailDiv.innerHTML = `<p>Aucune victime trouvée pour "<strong>${input}</strong>".</p>`;
+    return;
+  }
+
+  showVictimDetails(victim);
+}
+
+function showVictimDetails(data) {
+  const container = document.getElementById("victim-detail");
+  container.innerHTML = `
+    <p><strong>Victime :</strong> ${data.post_title || "N/A"}</p>
+    <p><strong>Groupe :</strong> ${data.group_name || "N/A"}</p>
+    <p><strong>Pays :</strong> ${data.country || "N/A"}</p>
+    <p><strong>Date de publication :</strong> ${data.published || "N/A"}</p>
+    <p><strong>Date de découverte :</strong> ${data.discovered || "N/A"}</p>
+    <p><strong>Description :</strong> ${data.description || "N/A"}</p>
+    <p><strong>Secteur :</strong> ${data.activity || "N/A"}</p>
+    ${data.website ? `<p><strong>Site web :</strong> <a href="http://${data.website}" target="_blank">${data.website}</a></p>` : ""}
+  `;
 }
