@@ -302,7 +302,6 @@ function updateLastAttackInfo() {
   const lastAttack = rawData.reduce((acc, cur) => cur.date > acc.date ? cur : acc);
 
   const container = document.getElementById("last-attack-content");
-  if (!container) return;
   container.innerHTML = `
     <p><strong>Victime :</strong> ${lastAttack.post_title || "N/A"}</p>
     <p><strong>Groupe :</strong> ${lastAttack.group_name || "N/A"}</p>
