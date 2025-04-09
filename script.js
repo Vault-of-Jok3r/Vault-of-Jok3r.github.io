@@ -4,10 +4,10 @@ let countryNamesByIso2 = {};
 
 // Charger le mapping ISO depuis le fichier CSV et les données ransomware depuis l'API
 Promise.all([
-  d3.csv("data/pays.csv"),  
+  d3.csv("data/pays.csv"),
   d3.json("https://data.ransomware.live/posts.json")
 ]).then(([mappingData, postsData]) => {
-  // Créer l'objet de mapping à partir du CSV
+  // Mapping ISO
   mappingData.forEach(d => {
     iso2ById[d.iso_numeric] = d.iso_alpha2;
     countryNamesByIso2[d.iso_alpha2] = d.country_name;
@@ -17,11 +17,12 @@ Promise.all([
   rawData.forEach(d => d.date = new Date(d.published));
   const latestDate = d3.max(rawData, d => d.date);
 
-  // Initialisation des inputs pour les graphiques d'attaques
+  // Initialisation des valeurs par défaut
   document.getElementById("day-input").value = latestDate.toISOString().split("T")[0];
   document.getElementById("month-input").value = latestDate.toISOString().slice(0, 7);
   document.getElementById("year-input").value = latestDate.getFullYear();
 
+  // Mise à jour des graphiques de base
   updateDailyChart();
   updateMonthlyChart();
   updateYearlyChart();
@@ -34,11 +35,9 @@ Promise.all([
   document.getElementById("day-input").addEventListener("change", updateDailyChart);
   document.getElementById("month-input").addEventListener("change", updateMonthlyChart);
   document.getElementById("year-input").addEventListener("change", updateYearlyChart);
-  mapYearInput.addEventListener("change", () => {
-    updateWorldMap(+mapYearInput.value);
-  });
+  mapYearInput.addEventListener("change", () => updateWorldMap(+mapYearInput.value));
 
-  // Initialisation des inputs pour les Groupes
+  // Groupes
   const groupDayInput = document.getElementById("group-day-input");
   const groupMonthInput = document.getElementById("group-month-input");
   const groupYearInput = document.getElementById("group-year-input");
@@ -58,17 +57,26 @@ Promise.all([
   // Dernière attaque
   updateLastAttackInfo();
 
-  // Recherche d'un groupe
-  document.getElementById("search-group-btn").addEventListener("click", searchGroup);
-  document.getElementById("search-group-input").addEventListener("keyup", (e) => {
-    if (e.key === "Enter") searchGroup();
-  });
-
+  // Victimes
   updateVictimHistory();
-  document.getElementById("victim-search-btn").addEventListener("click", searchVictim);
-  document.getElementById("victim-search-input").addEventListener("keyup", (e) => {
-    if (e.key === "Enter") searchVictim();
-  });
+  const victimSearchBtn = document.getElementById("victim-search-btn");
+  const victimSearchInput = document.getElementById("victim-search-input");
+
+  if (victimSearchBtn && victimSearchInput) {
+    victimSearchBtn.addEventListener("click", searchVictim);
+    victimSearchInput.addEventListener("keyup", e => {
+      if (e.key === "Enter") searchVictim();
+    });
+  }
+
+  updateGroupHistory();
+  document.getElementById("group-history-btn").addEventListener("click", searchGroupInHistory);
+  document.getElementById("group-history-input").addEventListener("keyup", e => {
+    if (e.key === "Enter") searchGroupInHistory();
+  });  
+
+  // Pie chart secteurs
+  drawActivityPie();
 });
 
 // ------------------------------
@@ -293,7 +301,7 @@ function updateLastAttackInfo() {
   if (!rawData || rawData.length === 0) return;
   const lastAttack = rawData.reduce((acc, cur) => cur.date > acc.date ? cur : acc);
 
-  const container = document.querySelector("#last-attack-title").parentElement.parentElement;
+  const container = document.getElementById("last-attack-content");
   container.innerHTML = `
     <p><strong>Victime :</strong> ${lastAttack.post_title || "N/A"}</p>
     <p><strong>Groupe :</strong> ${lastAttack.group_name || "N/A"}</p>
@@ -618,3 +626,375 @@ function showVictimDetails(data) {
     ${data.website ? `<p><strong>Site web :</strong> <a href="http://${data.website}" target="_blank">${data.website}</a></p>` : ""}
   `;
 }
+
+function drawActivityPie() {
+  const svg = d3.select("#activity-pie");
+  svg.selectAll("*").remove();
+
+  // Dimensions du SVG
+  const width = +svg.attr("width") || 800;
+  const height = +svg.attr("height") || 600;
+
+  const margin = 40;
+  const radius = Math.min(width, height) / 2 - margin;
+
+  // Décalage du Pie Chart vers la gauche (35% de la largeur)
+  const g = svg.append("g")
+    .attr("transform", `translate(${width * 0.35}, ${height / 2})`);
+
+  // Normalisation des activités pour corriger les doublons
+  rawData.forEach(d => {
+    if (d.activity) {
+      d.activity = normalizeActivity(d.activity);
+    }
+  });
+
+  // Préparation des données après normalisation
+  const dataArr = Array.from(
+    d3.rollup(
+      rawData.filter(d => d.activity && d.activity !== "Not Found"),
+      arr => arr.length,
+      d => d.activity
+    ),
+    ([activity, count]) => ({ activity, count })
+  ).sort((a, b) => b.count - a.count);
+
+  // Configuration de l'échelle de couleur
+  const color = d3.scaleOrdinal()
+    .domain(dataArr.map(d => d.activity))
+    // On concatène plusieurs sets de couleurs pour avoir suffisamment de nuances
+    .range(d3.schemeTableau10.concat(d3.schemeSet3, d3.schemeDark2));
+
+  // Layout pie
+  const pie = d3.pie()
+    .sort(null)
+    .value(d => d.count);
+
+  const arc = d3.arc()
+    .innerRadius(0)
+    .outerRadius(radius);
+
+  // Dessin des arcs du pie chart
+  const arcs = g.selectAll(".arc")
+    .data(pie(dataArr))
+    .enter()
+    .append("g")
+    .attr("class", "arc");
+
+  arcs.append("path")
+    .attr("d", arc)
+    .attr("fill", d => color(d.data.activity))
+    .append("title")
+    .text(d => `${d.data.activity} (${d.data.count} attaques)`);
+
+  // Ajout de texte dans les arcs suffisamment grands
+  arcs.append("text")
+    .attr("transform", d => `translate(${arc.centroid(d)})`)
+    .attr("text-anchor", "middle")
+    .attr("alignment-baseline", "middle")
+    .style("font-size", "12px")
+    .style("fill", "white")
+    .text(d => {
+      const percentage = (d.data.count / d3.sum(dataArr, d => d.count)) * 100;
+      // Affiche uniquement si la part est assez grande
+      return percentage > 3 ? d.data.activity : "";
+    });
+
+  // --------------------------------------
+  // Partie pour la PAGINATION de la légende
+  // --------------------------------------
+
+  // Paramètres de pagination
+  let currentPage = 0;          // page actuelle
+  const itemsPerPage = Math.floor(height / 30); // Ajuste automatiquement selon la hauteur      // combien d’items par page ?
+  const totalPages = Math.ceil(dataArr.length / itemsPerPage);
+
+  // Groupe principal de la légende, décalé (70% de la largeur)
+  const legendGroup = svg.append("g")
+    .attr("transform", `translate(${width * 0.70}, 40)`);
+
+  // Fonction pour mettre à jour l’affichage de la légende selon la page
+  function updateLegend(page) {
+    // Suppression des items existants
+    legendGroup.selectAll(".legend-item").remove();
+
+    // On calcule la portion de données à afficher pour cette page
+    const startIndex = page * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = dataArr.slice(startIndex, endIndex);
+
+    // Création des groupes pour chaque élément de la légende
+    const legendItems = legendGroup.selectAll(".legend-item")
+      .data(pageData)
+      .enter()
+      .append("g")
+      .attr("class", "legend-item")
+      .attr("transform", (d, i) => `translate(0, ${i * 30})`);
+
+    legendItems.append("rect")
+      .attr("width", 14)
+      .attr("height", 14)
+      .attr("fill", d => color(d.activity));
+
+    legendItems.append("text")
+      .attr("x", 20)
+      .attr("y", 11)
+      .style("font-size", "16px") 
+      .style("fill", "white")
+      .text(d => `${d.activity} (${d.count})`);
+
+    // Mise à jour de l’indicateur de page dans le <span id="pageInfoActivity">
+    d3.select("#pageInfoActivity")
+      .text(`Page ${page + 1} / ${totalPages}`);
+
+    // Mettre à jour l'état disabled des boutons
+    d3.select("#prevPageActivity").property("disabled", page === 0);
+    d3.select("#nextPageActivity").property("disabled", page === totalPages - 1);
+  }
+
+  // Gestion des clics sur « Précédent »
+  d3.select("#prevPageActivity").on("click", () => {
+    if (currentPage > 0) {
+      currentPage--;
+      updateLegend(currentPage);
+    }
+  });
+
+  // Gestion des clics sur « Suivant »
+  d3.select("#nextPageActivity").on("click", () => {
+    if (currentPage < totalPages - 1) {
+      currentPage++;
+      updateLegend(currentPage);
+    }
+  });
+
+  // On appelle updateLegend pour dessiner la légende (page 0 au départ)
+  updateLegend(currentPage);
+}
+
+function normalizeActivity(activity) {
+  if (!activity) return "N/A";
+
+  let act = activity.toLowerCase().trim();
+
+  // Suppressions explicites
+  if (act.startsWith("real estate is not")) return null;
+
+  // Normalisations spécifiques
+  if (act.includes("manufacturing")) return "Manufacturing";
+  if (act.includes("it manufacturing")) return "Manufacturing";
+  if (act.includes("business services") && act.includes("technology")) return "Technology";
+  if (act.includes("healthcare")) return "Healthcare";
+  if (act.includes("financial")) return "Financial";
+  if (act.includes("government")) return "Government";
+  if (act.includes("education")) return "Education";
+  if (act.includes("transportation")) return "Transportation";
+  if (act.includes("agriculture")) return "Food & Agriculture";
+  if (act.includes("food & beverages")) return "Food & Agriculture";
+  if (act.includes("food production")) return "Food & Agriculture";
+  if (act.includes("energy & utilities")) return "Energy";
+  if (act === "energy") return "Energy";
+  if (act.includes("telecommunication") || act.includes("communication")) return "Telecommunications";
+  if (act.includes("advertising") || act.includes("public relations")) return "Marketing & PR";
+  if (act.includes("legal") || act.includes("law firm")) return "Legal Services";
+  if (act.includes("non-profit") || act.includes("social services")) return "Non-Profit & Social Services";
+  if (act.includes("retail")) return "Retail";
+  if (act.includes("wholesale")) return "Retail";
+
+  // Cas par défaut : capitaliser première lettre
+  return activity.charAt(0).toUpperCase() + activity.slice(1);
+}
+
+function updateGroupHistory() {
+  const list = document.getElementById("group-list");
+  const pagination = document.getElementById("group-pagination");
+
+  const groups = Array.from(d3.rollup(
+    rawData,
+    v => v.length,
+    d => d.group_name
+  ), ([group, count]) => ({ group, count }))
+    .filter(g => g.group)
+    .sort((a, b) => b.count - a.count);
+
+  let currentPage = 1;
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(groups.length / itemsPerPage);
+
+  function renderPage(page) {
+    currentPage = page;
+
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const currentItems = groups.slice(start, end);
+
+    list.innerHTML = "";
+    currentItems.forEach(g => {
+      const li = document.createElement("li");
+      li.textContent = `${g.group} (${g.count})`;
+      li.addEventListener("click", () => showGroupDetails(g.group));
+      document.getElementById("group-list").appendChild(li);      
+    });
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    pagination.innerHTML = "";
+
+    const createBtn = (pageNum, text = null, isDisabled = false) => {
+      const btn = document.createElement("button");
+      btn.textContent = text || pageNum;
+      btn.disabled = isDisabled;
+      btn.classList.add("page-btn");
+      btn.addEventListener("click", () => renderPage(pageNum));
+      pagination.appendChild(btn);
+    };
+
+    const createEllipsis = (targetPage) => {
+      const btn = document.createElement("button");
+      btn.textContent = "...";
+      btn.classList.add("page-btn");
+      btn.addEventListener("click", () => {
+        const input = prompt(`Aller à la page (1 - ${totalPages})`, targetPage);
+        const page = parseInt(input);
+        if (!isNaN(page) && page >= 1 && page <= totalPages) {
+          renderPage(page);
+        }
+      });
+      pagination.appendChild(btn);
+    };
+
+    // Pagination identique à celle des victimes
+    createBtn(1, "1", currentPage === 1);
+    if (totalPages <= 7) {
+      for (let i = 2; i <= totalPages; i++) createBtn(i, i, currentPage === i);
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 2; i <= 5; i++) createBtn(i, i, currentPage === i);
+        createEllipsis(6);
+      } else if (currentPage >= totalPages - 3) {
+        createEllipsis(currentPage - 5);
+        for (let i = totalPages - 4; i < totalPages; i++) createBtn(i, i, currentPage === i);
+      } else {
+        createEllipsis(currentPage - 5);
+        for (let i = currentPage - 2; i <= currentPage + 2; i++) createBtn(i, i, currentPage === i);
+        createEllipsis(currentPage + 5);
+      }
+      createBtn(totalPages, totalPages, currentPage === totalPages);
+    }
+  }
+
+  renderPage(currentPage);
+}
+
+function searchGroupInHistory() {
+  const input = document.getElementById("group-history-input").value.trim().toLowerCase();
+  const group = rawData.find(d => d.group_name && d.group_name.toLowerCase() === input);
+  const detailDiv = document.getElementById("group-detail");
+
+  if (!group) {
+    detailDiv.innerHTML = `<p>Aucun groupe trouvé pour "<strong>${input}</strong>".</p>`;
+    return;
+  }
+
+  showGroupDetails(group.group_name);
+}
+
+function showGroupDetails(groupName) {
+  const container = document.getElementById("group-detail");
+  const groupData = rawData.filter(d => d.group_name === groupName);
+
+  if (groupData.length === 0) {
+    container.innerHTML = "<p>Aucune information disponible.</p>";
+    return;
+  }
+
+  const sorted = groupData.sort((a, b) => new Date(b.published) - new Date(a.published));
+  const latest = sorted[0];
+
+  const totalAttacks = groupData.length;
+
+  // Attaques par pays
+  const attacksByCountry = d3.rollup(
+    groupData,
+    v => v.length,
+    d => d.country || "N/A"
+  );
+  const sortedCountries = Array.from(attacksByCountry, ([country, count]) => ({ country, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Pagination config
+  let currentPage = 0;
+  const itemsPerPage = 12;
+  const totalPages = Math.ceil(sortedCountries.length / itemsPerPage);
+
+  function renderCountryGrid(page) {
+    const start = page * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageData = sortedCountries.slice(start, end);
+
+    const gridHTML = pageData.map(item => {
+      const flag = countryCodeToFlagEmoji(item.country);
+      const label = countryNamesByIso2[item.country] || item.country || "Inconnu";
+      return `
+        <div class="grid-item">
+          <strong>${flag} ${label}</strong><br/>
+          ${item.count} attaque${item.count > 1 ? "s" : ""}
+        </div>`;
+    }).join("");
+
+    return `<div class="grid-pays" style="margin-top: 10px;">${gridHTML}</div>`;
+  }
+
+  function renderPaginationControls() {
+    return `
+      <div class="pagination">
+        <button class="page-btn" id="prev-country-page" ${currentPage === 0 ? "disabled" : ""}>Précédent</button>
+        <span style="margin: 0 10px;">Page ${currentPage + 1} / ${totalPages}</span>
+        <button class="page-btn" id="next-country-page" ${currentPage === totalPages - 1 ? "disabled" : ""}>Suivant</button>
+      </div>`;
+  }
+
+  function renderAll() {
+    container.innerHTML = `
+      <div style="display: flex; justify-content: space-between; gap: 20px;">
+        <!-- Colonne gauche -->
+        <div style="width: 48%;">
+          <p><strong>Nom du groupe :</strong> ${groupName}</p>
+          <p><strong>Nombre total d'attaques :</strong> ${totalAttacks}</p>
+          <p><strong>Dernière victime connue :</strong> ${latest.post_title || "N/A"}</p>
+          <p><strong>Dernière publication :</strong> ${latest.published || "N/A"}</p>
+          <p><strong>Pays :</strong> ${latest.country || "N/A"}</p>
+          <p><strong>Secteur :</strong> ${latest.activity || "N/A"}</p>
+          ${latest.website ? `<p><strong>Site web :</strong> <a href="http://${latest.website}" target="_blank">${latest.website}</a></p>` : ""}
+        </div>
+
+        <!-- Colonne droite -->
+        <div style="width: 48%;">
+          <p style="text-align: center;"><strong>Répartition des attaques par pays :</strong></p>
+          ${renderCountryGrid(currentPage)}
+          ${renderPaginationControls()}
+        </div>
+      </div>`;
+
+    // Events pour la pagination
+    document.getElementById("prev-country-page")?.addEventListener("click", () => {
+      if (currentPage > 0) {
+        currentPage--;
+        renderAll();
+      }
+    });
+    document.getElementById("next-country-page")?.addEventListener("click", () => {
+      if (currentPage < totalPages - 1) {
+        currentPage++;
+        renderAll();
+      }
+    });
+  }
+
+  renderAll();
+}
+
+
+// 1000 🥳🥳
