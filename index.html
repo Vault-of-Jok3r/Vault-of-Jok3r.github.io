@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <link rel="icon" type="image/png" href="img/favicon_head.png">
-  <title>Visualisation Interactive des Attaques Ransomware</title>
+  <title>Visualisation</title>
   <link rel="stylesheet" href="index.css" />
 </head>
 <body>
@@ -11,7 +11,8 @@
 
   <!-- Bloc des graphiques d'attaques -->
   <div class="card">
-    <div class="charts">
+    <div class="charts-grid">
+      
       <!-- Attaques par Heure -->
       <div class="chart" id="daily-chart-block">
         <h2>Attaques par Heure</h2>
@@ -21,7 +22,7 @@
         </div>
         <svg id="chart-day" width="460" height="350"></svg>
       </div>
-
+  
       <!-- Attaques par Jour -->
       <div class="chart" id="monthly-chart-block">
         <h2>Attaques par Jour</h2>
@@ -31,7 +32,7 @@
         </div>
         <svg id="chart-month" width="460" height="350"></svg>
       </div>
-
+  
       <!-- Attaques par Mois -->
       <div class="chart" id="yearly-chart-block">
         <h2>Attaques par Mois</h2>
@@ -41,8 +42,15 @@
         </div>
         <svg id="chart-year" width="460" height="350"></svg>
       </div>
+  
+      <!-- Attaques par Année -->
+      <div class="chart" id="all-years-chart-block">
+        <h2>Attaques par Année</h2>
+        <svg id="chart-all-years" width="460" height="350"></svg>
+      </div>
+  
     </div>
-  </div>
+  </div>  
 
   <!-- Carte du monde -->
   <div class="card">
