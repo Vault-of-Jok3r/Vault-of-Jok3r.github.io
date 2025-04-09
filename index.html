@@ -121,8 +121,31 @@
         <!-- Contenu généré en JS -->
       </div>
     </div>
-
   </div>
+
+  <!-- Conteneur : historique -->
+  <div class="card" id="victim-history-card" style="width: 90%; margin-top: 20px;">
+    <h2 style="text-align:center;">Historique des Victimes</h2>
+    <div style="display: flex; gap: 30px; align-items: flex-start;">
+  
+      <!-- Colonne de gauche : historique -->
+      <div style="width: 30%;">
+        <h3 style="margin-top: 0;">Liste des Victimes</h3>
+        <ul id="victim-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+        <div class="pagination" id="victim-pagination" style="margin-top: 15px; text-align: center;"></div>
+      </div>
+  
+      <!-- Colonne de droite : recherche + détail -->
+      <div style="width: 70%; padding-right: 20px;">
+        <div style="text-align: right; margin-bottom: 10px;">
+          <label for="victim-search-input"><strong>Rechercher une victime :</strong></label>
+          <input type="text" id="victim-search-input" placeholder="ex: ACME Corp" />
+          <button id="victim-search-btn">Chercher</button>
+        </div>
+        <div id="victim-detail" style="margin-top: 20px;"></div>
+      </div>
+    </div>
+  </div>  
 
   <!-- D3 et TopoJSON -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
