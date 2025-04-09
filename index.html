@@ -87,65 +87,85 @@
     </div>
   </div>
 
-  <!-- Conteneur des 2 cartes du bas (Dernière Attaque & Recherche Groupe) -->
-  <div id="bottom-cards-container"
-     style="display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            width: 90%;
-            margin: 20px auto;">
-    
-    <!-- Sous-carte 1 : Dernière Attaque -->
-    <div class="card" style="width: 48%; margin: 0; display: flex; flex-direction: column; justify-content: center;">
-      <h2 style="margin-top: 0;">Dernière Attaque</h2>
-      <div id="last-attack-content" style="margin: auto 0;">
-        <p><strong>Victime :</strong> <span id="last-attack-title"></span></p>
-        <p><strong>Groupe :</strong> <span id="last-attack-group"></span></p>
-        <p><strong>Pays :</strong> <span id="last-attack-country"></span></p>
-        <p><strong>Date de publication :</strong> <span id="last-attack-published"></span></p>
-        <p><strong>Date de découverte :</strong> <span id="last-attack-discovered"></span></p>
-        <p><strong>Description :</strong> <span id="last-attack-description"></span></p>
-        <p><strong>Secteur :</strong> <span id="last-attack-activity"></span></p>
-      </div>
-    </div>       
+  <!-- Conteneur des 2 cartes du bas (Dernière Attaque & Secteurs ciblés) -->
+<div id="bottom-cards-container"
+style="display: flex;
+       justify-content: space-between;
+       gap: 20px;
+       width: 90%;
+       margin: 20px auto;">
 
-    <!-- Sous-carte 2 : Recherche d'un Groupe -->
-    <div class="card" style="width: 48%; margin: 0; display: flex; flex-direction: column;">
-      <h2>Recherche d'un Groupe</h2>
-      <div class="controls">
-        <label for="search-group-input">Nom du groupe :</label>
-        <input type="text" id="search-group-input" placeholder="ex: akira" />
-        <button id="search-group-btn">Chercher</button>
+<!-- Dernière Attaque -->
+<div class="card" style="width: 48%; margin: 0;">
+<h2 style="margin-top: 0;">Dernière Attaque</h2>
+<div id="last-attack-content">
+ <!-- Contenu injecté en JS -->
+</div>
+</div>
+
+<!-- Nouveau Camembert : Activité / Secteurs -->
+<div class="card" style="width: 48%; margin: 0;">
+<h2 style="margin-top: 0;">Répartition des Secteurs Ciblés</h2>
+<svg id="activity-pie"
+     style="width: 100%; max-width: 900px; height: auto;"
+     viewBox="0 0 900 600"
+     preserveAspectRatio="xMidYMid meet">
+</svg>
+<div class="pagination">
+  <button class="page-btn" id="prevPageActivity">Précédent</button>
+  <span id="pageInfoActivity"></span>
+  <button class="page-btn" id="nextPageActivity">Suivant</button>
+</div>
+</div>
+</div>
+
+<!-- Historique des Victimes + Recherches -->
+<div class="card" id="victim-history-card" style="width: 90%; margin-top: 20px;">
+<h2 style="text-align:center;">Historique des Victimes</h2>
+<div style="display: flex; gap: 30px; align-items: flex-start;">
+
+<!-- Colonne gauche -->
+<div style="width: 30%;">
+ <h3 style="margin-top: 0;">Liste des Victimes</h3>
+ <ul id="victim-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+ <div class="pagination" id="victim-pagination" style="margin-top: 15px; text-align: center;"></div>
+</div>
+
+<!-- Colonne droite : recherche & détails -->
+<div style="width: 70%;">
+ <div style="text-align: right; margin-bottom: 10px;">
+   <label for="victim-search-input"><strong>Rechercher une victime :</strong></label>
+   <input type="text" id="victim-search-input" placeholder="ex: ACME Corp" />
+   <button id="victim-search-btn">Chercher</button>
+ </div>
+ <div id="victim-detail" style="margin-top: 20px;"></div>
+</div>
+</div>
+</div>
+
+<!-- Conteneur : historique des groupes -->
+<div class="card" id="group-history-card" style="width: 90%; margin-top: 20px;">
+  <h2 style="text-align:center;">Historique des Groupes</h2>
+  <div style="display: flex; gap: 30px; align-items: flex-start;">
+
+    <!-- Colonne gauche : liste des groupes -->
+    <div style="width: 30%;">
+      <h3 style="margin-top: 0;">Liste des Groupes</h3>
+      <ul id="group-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+      <div class="pagination" id="group-pagination" style="margin-top: 15px; text-align: center;"></div>
+    </div>
+
+    <!-- Colonne droite : recherche + détail -->
+    <div style="width: 70%; padding-right: 20px;">
+      <div style="text-align: right; margin-bottom: 10px;">
+        <label for="group-history-input"><strong>Rechercher un groupe :</strong></label>
+        <input type="text" id="group-history-input" placeholder="ex: LockBit" />
+        <button id="group-history-btn">Chercher</button>
       </div>
-      <div id="group-search-result" style="margin-top:10px;">
-        <!-- Contenu généré en JS -->
-      </div>
+      <div id="group-detail" style="margin-top: 20px;"></div>
     </div>
   </div>
-
-  <!-- Conteneur : historique -->
-  <div class="card" id="victim-history-card" style="width: 90%; margin-top: 20px;">
-    <h2 style="text-align:center;">Historique des Victimes</h2>
-    <div style="display: flex; gap: 30px; align-items: flex-start;">
-  
-      <!-- Colonne de gauche : historique -->
-      <div style="width: 30%;">
-        <h3 style="margin-top: 0;">Liste des Victimes</h3>
-        <ul id="victim-list" style="list-style: none; padding: 0; margin: 0;"></ul>
-        <div class="pagination" id="victim-pagination" style="margin-top: 15px; text-align: center;"></div>
-      </div>
-  
-      <!-- Colonne de droite : recherche + détail -->
-      <div style="width: 70%; padding-right: 20px;">
-        <div style="text-align: right; margin-bottom: 10px;">
-          <label for="victim-search-input"><strong>Rechercher une victime :</strong></label>
-          <input type="text" id="victim-search-input" placeholder="ex: ACME Corp" />
-          <button id="victim-search-btn">Chercher</button>
-        </div>
-        <div id="victim-detail" style="margin-top: 20px;"></div>
-      </div>
-    </div>
-  </div>  
+</div>
 
   <!-- D3 et TopoJSON -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
