@@ -35,9 +35,18 @@ h1 {
   flex-wrap: wrap;
 }
 
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 colonnes de largeur égale */
+  grid-auto-rows: auto;                 /* Hauteur auto pour chaque ligne */
+  gap: 20px;                            /* Espacement entre les cartes */
+  justify-items: center;                /* Centre horizontalement chaque “chart” (optionnel) */
+  align-items: start;                   /* Aligne en haut chaque bloc (optionnel) */
+}
+
 .chart {
-  width: 380px; 
-  margin: 10px;
+  width: 500px;
+  height: auto;
 }
 
 .chart h2, .chart h3 {
@@ -54,8 +63,8 @@ h1 {
 svg {
   display: block;
   margin: 0 auto;
-  width: 430px; 
-  height: 280px; 
+  width: 500px;
+  height: 300px;
 }
 
 /* Barres et axes */
