@@ -134,3 +134,47 @@ svg {
   
   min-height: 100%;
 }
+
+#victim-list li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #444;
+  transition: background 0.2s;
+}
+
+#victim-list li:hover {
+  background: #333;
+  color: orange;
+}
+
+#victim-detail {
+  padding-left: 20px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+#victim-detail p {
+  margin: 6px 0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+#victim-detail a {
+  color: #7fbfff;
+  text-decoration: underline;
+}
+
+.pagination button {
+  background: #555c7a;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  margin: 0 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background: #999;
+  cursor: default;
+}
