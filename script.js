@@ -26,6 +26,7 @@ Promise.all([
   updateDailyChart();
   updateMonthlyChart();
   updateYearlyChart();
+  updateAllYearsChart();
 
   // Carte du monde
   const mapYearInput = document.getElementById("map-year-input");
@@ -131,24 +132,55 @@ function updateYearlyChart() {
                "Attaques par Mois (Année: " + val + ")");
 }
 
+function updateAllYearsChart() {
+  // Filtrage : ne garder que les objets avec une date valide
+  const validData = rawData
+    .map(d => ({
+      ...d,
+      date: new Date(d.published) // ← Assure-toi que c’est bien "published" que tu veux
+    }))
+    .filter(d => !isNaN(d.date.getTime())); // Élimine les dates invalides
+
+  // Regroupement par année
+  const years = Array.from(
+    d3.group(validData, d => d.date.getFullYear()),
+    ([year, entries]) => ({
+      year,
+      count: entries.length
+    })
+  ).sort((a, b) => a.year - b.year);
+
+  // Tracé du graphique
+  drawBarChart("#chart-all-years", years,
+    d => d.year, d => d.count, d => d.year,
+    "Attaques par Année", true); // ← active l'empilement "2025"
+  }
+
+
 // ------------------------------
 // 4) Fonction de tracé générique (Bar Chart vertical)
 // ------------------------------
-function drawBarChart(svgSelector, data, xValue, yValue, xTickFormat, chartTitle) {
+function drawBarChart(svgSelector, data, xValue, yValue, xTickFormat, chartTitle, isYearChart = false) {
   const svg = d3.select(svgSelector);
   svg.selectAll("*").remove();
-  const margin = { top: 32, right: 16, bottom: 40, left: 40 };
+
+  const margin = { top: 32, right: 16, bottom: isYearChart ? 80 : 60, left: 50 };
   const width = parseInt(svg.style("width")) - margin.left - margin.right;
   const height = parseInt(svg.style("height")) - margin.top - margin.bottom;
-  const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const g = svg.append("g")
+               .attr("transform", `translate(${margin.left},${margin.top})`);
+
   const xScale = d3.scaleBand()
                    .domain(data.map(xValue))
                    .range([0, width])
                    .padding(0.1);
+
   const yScale = d3.scaleLinear()
                    .domain([0, d3.max(data, yValue)])
                    .nice()
                    .range([height, 0]);
+
   g.selectAll(".bar")
    .data(data)
    .enter().append("rect")
@@ -157,18 +189,46 @@ function drawBarChart(svgSelector, data, xValue, yValue, xTickFormat, chartTitle
      .attr("y", d => yScale(yValue(d)))
      .attr("width", xScale.bandwidth())
      .attr("height", d => height - yScale(yValue(d)));
-  g.append("g")
-   .attr("transform", `translate(0,${height})`)
-   .attr("class", "axis axis--x")
-   .call(d3.axisBottom(xScale).tickFormat(xTickFormat));
+
+  // Axe X avec affichage vertical spécial pour années
+  const xAxis = d3.axisBottom(xScale).tickFormat(xTickFormat);
+  const xAxisGroup = g.append("g")
+                      .attr("transform", `translate(0,${height})`)
+                      .attr("class", "axis axis--x")
+                      .call(xAxis);
+
+  if (isYearChart) {
+    xAxisGroup.selectAll("text")
+      .each(function(d) {
+        const text = d3.select(this);
+        const year = d.toString();
+        text.text(null); // clear existing
+        for (let i = 0; i < year.length; i++) {
+          text.append("tspan")
+              .text(year[i])
+              .attr("x", 0)
+              .attr("dy", i === 0 ? "0em" : "1em");
+        }
+      })
+      .attr("text-anchor", "middle")
+      .attr("transform", null); // no rotate
+  } else {
+    xAxisGroup.selectAll("text")
+      .attr("text-anchor", "middle")
+      .style("font-size", "10px");
+  }
+  
+
   g.append("g")
    .attr("class", "axis axis--y")
    .call(d3.axisLeft(yScale));
+
   svg.append("text")
      .attr("x", (width + margin.left + margin.right) / 2)
      .attr("y", margin.top / 2)
      .attr("text-anchor", "middle")
      .style("font-size", "12px")
+     .style("fill", "#fff")
      .text(chartTitle);
 }
 
@@ -302,6 +362,7 @@ function updateLastAttackInfo() {
   const lastAttack = rawData.reduce((acc, cur) => cur.date > acc.date ? cur : acc);
 
   const container = document.getElementById("last-attack-content");
+  if (!container) return;
   container.innerHTML = `
     <p><strong>Victime :</strong> ${lastAttack.post_title || "N/A"}</p>
     <p><strong>Groupe :</strong> ${lastAttack.group_name || "N/A"}</p>
@@ -995,6 +1056,3 @@ function showGroupDetails(groupName) {
 
   renderAll();
 }
-
-
-// 1000 🥳🥳
