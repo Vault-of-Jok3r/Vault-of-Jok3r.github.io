@@ -142,11 +142,14 @@ style="display: flex;
 
 <!-- Colonne droite : recherche & détails -->
 <div style="width: 70%;">
- <div style="text-align: right; margin-bottom: 10px;">
-   <label for="victim-search-input"><strong>Rechercher une victime :</strong></label>
-   <input type="text" id="victim-search-input" placeholder="ex: ACME Corp" />
-   <button id="victim-search-btn">Chercher</button>
- </div>
+  <div class="search-container">
+    <div class="search-input-wrapper">
+      <label for="victim-search-input"><strong>Rechercher une victime :</strong></label>
+      <input type="text" id="victim-search-input" placeholder="ex: ACME Corp" />
+      <button id="victim-search-btn">Chercher</button>
+    </div>
+    <div id="victim-suggestions" class="suggestions-box"></div>
+  </div>  
  <div id="victim-detail" style="margin-top: 20px;"></div>
 </div>
 </div>
@@ -154,9 +157,10 @@ style="display: flex;
 
 <!-- Conteneur : historique des groupes -->
 <div class="card" id="group-history-card" style="width: 90%; margin-top: 20px;">
-  <h2 style="text-align:center;">Historique des Groupes</h2>
-  <div style="display: flex; gap: 30px; align-items: flex-start;">
 
+  <h2 style="text-align:center;">Historique des Groupes</h2>
+
+  <div style="display: flex; gap: 30px; align-items: flex-start;">
     <!-- Colonne gauche : liste des groupes -->
     <div style="width: 30%;">
       <h3 style="margin-top: 0;">Liste des Groupes</h3>
@@ -164,14 +168,22 @@ style="display: flex;
       <div class="pagination" id="group-pagination" style="margin-top: 15px; text-align: center;"></div>
     </div>
 
-    <!-- Colonne droite : recherche + détail -->
-    <div style="width: 70%; padding-right: 20px;">
-      <div style="text-align: right; margin-bottom: 10px;">
-        <label for="group-history-input"><strong>Rechercher un groupe :</strong></label>
-        <input type="text" id="group-history-input" placeholder="ex: LockBit" />
-        <button id="group-history-btn">Chercher</button>
+    <!-- Bloc droit : Recherche + détails groupe -->
+    <div style="width: 70%; padding-left: 30px;">
+      <!-- Recherche -->
+      <div class="search-container" style="margin-bottom: 20px;">
+        <div class="search-input-wrapper" style="display: flex; align-items: center; gap: 10px;">
+          <label for="group-history-input"><strong>Rechercher un groupe :</strong></label>
+          <input type="text" id="group-history-input" placeholder="ex: LockBit" />
+          <button id="group-history-btn">Chercher</button>
+        </div>
+        <div id="group-suggestions" class="suggestions-box"></div>
       </div>
-      <div id="group-detail" style="margin-top: 20px;"></div>
+
+      <!-- Détails du groupe -->
+      <div id="group-detail"></div>
+            <!-- Bloc déplacé du camembert et de sa légende -->
+          
     </div>
   </div>
 </div>
