@@ -67,6 +67,19 @@ svg {
   height: 300px;
 }
 
+/* Forcer tous les textes SVG en blanc */
+svg text {
+  fill: white !important;
+}
+
+/* Forcer les titres (chartTitle, labels D3, etc.) */
+.axis text,
+.label,
+.legend-item text {
+  fill: white !important;
+  font-size: 12px;
+}
+
 /* Barres et axes */
 .bar {
   fill: steelblue;
@@ -87,6 +100,15 @@ svg {
   fill: none;
   stroke: #ccc;
   shape-rendering: crispEdges;
+}
+
+a {
+  color: #4da6ff; /* bleu clair bien lisible */
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #80cfff; /* plus clair au survol */
 }
 
 /* Carte du monde : conserver 960x500 */
@@ -204,4 +226,49 @@ svg {
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+#victim-suggestions li:hover,
+#group-suggestions li:hover {
+  background-color: #333;
+  color: orange;
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggestions-box {
+  background-color: #1f1f2e;
+  border: 1px solid #444;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.suggestions-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions-box li {
+  padding: 6px 8px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+}
+
+.suggestions-box li:hover {
+  background-color: #333;
 }
