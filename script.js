@@ -7,7 +7,6 @@ Promise.all([
   d3.csv("data/pays.csv"),
   d3.json("https://data.ransomware.live/posts.json")
 ]).then(([mappingData, postsData]) => {
-  // Mapping ISO
   mappingData.forEach(d => {
     iso2ById[d.iso_numeric] = d.iso_alpha2;
     countryNamesByIso2[d.iso_alpha2] = d.country_name;
@@ -27,7 +26,6 @@ Promise.all([
   updateMonthlyChart();
   updateYearlyChart();
   updateAllYearsChart();
-
   // Carte du monde
   const mapYearInput = document.getElementById("map-year-input");
   mapYearInput.value = latestDate.getFullYear();
@@ -47,13 +45,13 @@ Promise.all([
   groupMonthInput.value = latestDate.toISOString().slice(0, 7);
   groupYearInput.value = latestDate.getFullYear();
 
-  updateGroupDailyChart();
-  updateGroupMonthlyChart();
-  updateGroupYearlyChart();
-
   groupDayInput.addEventListener("change", updateGroupDailyChart);
   groupMonthInput.addEventListener("change", updateGroupMonthlyChart);
   groupYearInput.addEventListener("change", updateGroupYearlyChart);
+
+  updateGroupDailyChart();
+  updateGroupMonthlyChart();
+  updateGroupYearlyChart();  
 
   // Dernière attaque
   updateLastAttackInfo();
@@ -65,17 +63,88 @@ Promise.all([
 
   if (victimSearchBtn && victimSearchInput) {
     victimSearchBtn.addEventListener("click", searchVictim);
-    victimSearchInput.addEventListener("keyup", e => {
-      if (e.key === "Enter") searchVictim();
-    });
-  }
+    const victimInput = document.getElementById("victim-search-input");
+    const victimSuggestionBox = document.getElementById("victim-suggestions");
+    
+    victimInput.addEventListener("input", () => {
+      const query = victimInput.value.toLowerCase().trim();
+      victimSuggestionBox.innerHTML = "";
+    
+      if (query.length < 2) return;
+    
+      const matches = rawData.filter(d =>
+        d.post_title && d.post_title.toLowerCase().includes(query)
+      ).slice(0, 10); // Max 10 résultats
+    
+      if (matches.length === 0) {
+        victimSuggestionBox.innerHTML = "<p style='padding: 5px;'>Aucune suggestion.</p>";
+        return;
+      }
+    
+      const list = document.createElement("ul");
+      list.style.listStyle = "none";
+      list.style.padding = "0";
+      list.style.marginTop = "5px";
+    
+      matches.forEach(v => {
+        const li = document.createElement("li");
+        li.textContent = v.post_title;
+        li.style.cursor = "pointer";
+        li.style.padding = "6px 8px";
+        li.style.borderBottom = "1px solid #444";
+        li.addEventListener("click", () => {
+          showVictimDetails(v);
+          victimInput.value = v.post_title;
+          victimSuggestionBox.innerHTML = "";
+        });
+        list.appendChild(li);
+      });
+    
+      victimSuggestionBox.appendChild(list);
+    });    
 
   updateGroupHistory();
   document.getElementById("group-history-btn").addEventListener("click", searchGroupInHistory);
-  document.getElementById("group-history-input").addEventListener("keyup", e => {
-    if (e.key === "Enter") searchGroupInHistory();
+  const groupInput = document.getElementById("group-history-input");
+  const groupSuggestionBox = document.getElementById("group-suggestions");
+  
+  groupInput.addEventListener("input", () => {
+    const query = groupInput.value.toLowerCase().trim();
+    groupSuggestionBox.innerHTML = "";
+  
+    if (query.length < 2) return;
+  
+    const matches = Array.from(
+      new Set(rawData.map(d => d.group_name).filter(Boolean))
+    ).filter(name => name.toLowerCase().includes(query)).slice(0, 10);
+  
+    if (matches.length === 0) {
+      groupSuggestionBox.innerHTML = "<p style='padding: 5px;'>Aucune suggestion.</p>";
+      return;
+    }
+  
+    const list = document.createElement("ul");
+    list.style.listStyle = "none";
+    list.style.padding = "0";
+    list.style.marginTop = "5px";
+  
+    matches.forEach(name => {
+      const li = document.createElement("li");
+      li.textContent = name;
+      li.style.cursor = "pointer";
+      li.style.padding = "6px 8px";
+      li.style.borderBottom = "1px solid #444";
+      li.addEventListener("click", () => {
+        showGroupDetails(name);
+        groupInput.value = name;
+        groupSuggestionBox.innerHTML = "";
+      });
+      list.appendChild(li);
+    });
+  
+    groupSuggestionBox.appendChild(list);
   });  
-
+}
   // Pie chart secteurs
   drawActivityPie();
 });
@@ -190,6 +259,19 @@ function drawBarChart(svgSelector, data, xValue, yValue, xTickFormat, chartTitle
      .attr("width", xScale.bandwidth())
      .attr("height", d => height - yScale(yValue(d)));
 
+  // Dessiner les étiquettes de valeur au-dessus des barres
+  g.selectAll(".label")
+  .data(data)
+  .enter()
+  .append("text")
+  .attr("class", "label")
+  .attr("x", d => xScale(xValue(d)) + xScale.bandwidth() / 2)
+  .attr("y", d => yScale(yValue(d)) - 5)
+  .attr("text-anchor", "middle")
+  .attr("fill", "white")
+  .attr("font-size", "10px")
+  .text(d => yValue(d));
+
   // Axe X avec affichage vertical spécial pour années
   const xAxis = d3.axisBottom(xScale).tickFormat(xTickFormat);
   const xAxisGroup = g.append("g")
@@ -211,7 +293,7 @@ function drawBarChart(svgSelector, data, xValue, yValue, xTickFormat, chartTitle
         }
       })
       .attr("text-anchor", "middle")
-      .attr("transform", null); // no rotate
+      .attr("transform", null);
   } else {
     xAxisGroup.selectAll("text")
       .attr("text-anchor", "middle")
@@ -676,7 +758,8 @@ function searchVictim() {
 
 function showVictimDetails(data) {
   const container = document.getElementById("victim-detail");
-  container.innerHTML = `
+  
+  let html = `
     <p><strong>Victime :</strong> ${data.post_title || "N/A"}</p>
     <p><strong>Groupe :</strong> ${data.group_name || "N/A"}</p>
     <p><strong>Pays :</strong> ${data.country || "N/A"}</p>
@@ -686,6 +769,17 @@ function showVictimDetails(data) {
     <p><strong>Secteur :</strong> ${data.activity || "N/A"}</p>
     ${data.website ? `<p><strong>Site web :</strong> <a href="http://${data.website}" target="_blank">${data.website}</a></p>` : ""}
   `;
+
+  if (data.extrainfos && Object.keys(data.extrainfos).length > 0) {
+    html += `<p><strong>Informations supplémentaires :</strong></p><ul>`;
+    for (const [key, value] of Object.entries(data.extrainfos)) {
+      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      html += `<li><strong>${label} :</strong> ${value}</li>`;
+    }
+    html += `</ul>`;
+  }
+
+  container.innerHTML = html;
 }
 
 function drawActivityPie() {
@@ -962,6 +1056,121 @@ function searchGroupInHistory() {
   showGroupDetails(group.group_name);
 }
 
+function drawGroupSectorPie(groupData) {
+  const svg = d3.select("#group-sector-pie");
+  const title = document.getElementById("group-sector-title");
+  svg.selectAll("*").remove();
+
+  const width = 800;
+  const height = 400;
+  svg.attr("viewBox", `0 0 ${width} ${height}`).attr("preserveAspectRatio", "xMidYMid meet");
+  const radius = Math.min(width, height) / 2 - 40;
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${width * 0.35}, ${height / 2})`);
+
+  // Nettoyage et normalisation des activités
+  const cleaned = groupData
+    .filter(d => d.activity && normalizeActivity(d.activity) !== "Not Found")
+    .map(d => ({ ...d, activity: normalizeActivity(d.activity) }));
+
+  if (title) title.style.display = "block";
+
+  const sectorCounts = Array.from(
+    d3.rollup(cleaned, v => v.length, d => d.activity),
+    ([sector, count]) => ({ sector, count })
+  ).sort((a, b) => b.count - a.count);
+
+  const pie = d3.pie()
+    .sort(null)
+    .value(d => d.count);
+
+  const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+  const color = d3.scaleOrdinal()
+    .domain(sectorCounts.map(d => d.sector))
+    .range(d3.schemeTableau10.concat(d3.schemeSet3, d3.schemeDark2));
+
+  const arcs = g.selectAll(".arc")
+    .data(pie(sectorCounts))
+    .enter()
+    .append("g")
+    .attr("class", "arc");
+
+  arcs.append("path")
+    .attr("d", arc)
+    .attr("fill", d => color(d.data.sector))
+    .append("title")
+    .text(d => `${d.data.sector} (${d.data.count} attaques)`);
+
+  arcs.append("text")
+    .attr("transform", d => `translate(${arc.centroid(d)})`)
+    .attr("text-anchor", "middle")
+    .attr("alignment-baseline", "middle")
+    .style("font-size", "10px")
+    .style("fill", "#fff")
+    .text(d => {
+      const percentage = (d.data.count / d3.sum(sectorCounts, d => d.count)) * 100;
+      return percentage > 5 ? d.data.sector : "";
+    });
+
+  // Légende paginée (à droite)
+  const itemsPerPage = Math.floor(height / 30);
+  const totalPages = Math.ceil(sectorCounts.length / itemsPerPage);
+  let currentPage = 0;
+
+  const legendGroup = svg.append("g")
+    .attr("transform", `translate(${width * 0.70}, 40)`);
+
+  function updateLegend(page) {
+    legendGroup.selectAll(".legend-item").remove();
+    const start = page * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageData = sectorCounts.slice(start, end);
+
+    const items = legendGroup.selectAll(".legend-item")
+      .data(pageData)
+      .enter()
+      .append("g")
+      .attr("class", "legend-item")
+      .attr("transform", (d, i) => `translate(0, ${i * 30})`);
+
+    items.append("rect")
+      .attr("width", 14)
+      .attr("height", 14)
+      .attr("fill", d => color(d.sector));
+
+    items.append("text")
+      .attr("x", 20)
+      .attr("y", 11)
+      .style("font-size", "14px")
+      .style("fill", "white")
+      .text(d => `${d.sector} (${d.count})`);
+
+    d3.select("#pageInfoGroupActivity")
+      .text(`Page ${page + 1} / ${totalPages}`);
+
+    d3.select("#prevPageGroupActivity").property("disabled", page === 0);
+    d3.select("#nextPageGroupActivity").property("disabled", page === totalPages - 1);
+  }
+
+  d3.select("#prevPageGroupActivity").on("click", () => {
+    if (currentPage > 0) {
+      currentPage--;
+      updateLegend(currentPage);
+    }
+  });
+
+  d3.select("#nextPageGroupActivity").on("click", () => {
+    if (currentPage < totalPages - 1) {
+      currentPage++;
+      updateLegend(currentPage);
+    }
+  });
+
+  updateLegend(currentPage);
+}
+
 function showGroupDetails(groupName) {
   const container = document.getElementById("group-detail");
   const groupData = rawData.filter(d => d.group_name === groupName);
@@ -973,10 +1182,8 @@ function showGroupDetails(groupName) {
 
   const sorted = groupData.sort((a, b) => new Date(b.published) - new Date(a.published));
   const latest = sorted[0];
-
   const totalAttacks = groupData.length;
 
-  // Attaques par pays
   const attacksByCountry = d3.rollup(
     groupData,
     v => v.length,
@@ -985,7 +1192,6 @@ function showGroupDetails(groupName) {
   const sortedCountries = Array.from(attacksByCountry, ([country, count]) => ({ country, count }))
     .sort((a, b) => b.count - a.count);
 
-  // Pagination config
   let currentPage = 0;
   const itemsPerPage = 12;
   const totalPages = Math.ceil(sortedCountries.length / itemsPerPage);
@@ -1020,32 +1226,56 @@ function showGroupDetails(groupName) {
   function renderAll() {
     container.innerHTML = `
       <div style="display: flex; justify-content: space-between; gap: 20px;">
+
         <!-- Colonne gauche -->
-        <div style="width: 48%;">
+        <div style="width: 30%;">
           <p><strong>Nom du groupe :</strong> ${groupName}</p>
           <p><strong>Nombre total d'attaques :</strong> ${totalAttacks}</p>
           <p><strong>Dernière victime connue :</strong> ${latest.post_title || "N/A"}</p>
           <p><strong>Dernière publication :</strong> ${latest.published || "N/A"}</p>
           <p><strong>Pays :</strong> ${latest.country || "N/A"}</p>
           <p><strong>Secteur :</strong> ${latest.activity || "N/A"}</p>
-          ${latest.website ? `<p><strong>Site web :</strong> <a href="http://${latest.website}" target="_blank">${latest.website}</a></p>` : ""}
+          ${
+            latest.website
+              ? `<p><strong>Site web :</strong> <a href="http://${latest.website}" target="_blank">${latest.website}</a></p>`
+              : ""
+          }
+        </div>
+
+        <!-- Colonne centrale : SVG du camembert des secteurs -->
+        <div style="width: 35%; display: flex; flex-direction: column; align-items: center;">
+          <p><strong id="main-sector-info">Répartition des Secteurs Ciblés :</strong></p>
+          <!-- Camembert SVG pour les secteurs -->
+          <svg id="group-sector-pie" width="350" height="350"></svg>
+          <!-- Pagination de la légende -->
+          <div class="pagination">
+            <button class="page-btn" id="prevPageGroupActivity">Précédent</button>
+            <span id="pageInfoGroupActivity"></span>
+            <button class="page-btn" id="nextPageGroupActivity">Suivant</button>
+          </div>
         </div>
 
         <!-- Colonne droite -->
-        <div style="width: 48%;">
+        <div style="width: 30%;">
           <p style="text-align: center;"><strong>Répartition des attaques par pays :</strong></p>
           ${renderCountryGrid(currentPage)}
           ${renderPaginationControls()}
         </div>
-      </div>`;
 
-    // Events pour la pagination
+      </div>
+    `;
+
+    // Affichage du camembert SVG avec légende
+    drawGroupSectorPie(groupData);
+
+    // Pagination pays
     document.getElementById("prev-country-page")?.addEventListener("click", () => {
       if (currentPage > 0) {
         currentPage--;
         renderAll();
       }
     });
+
     document.getElementById("next-country-page")?.addEventListener("click", () => {
       if (currentPage < totalPages - 1) {
         currentPage++;
