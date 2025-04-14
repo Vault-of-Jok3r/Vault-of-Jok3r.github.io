@@ -18,14 +18,14 @@ h1 {
   background: #272A38;
   border-radius: 8px;
   padding: 20px;
-  margin: 20px auto;  /* marge verticale par défaut */
+  margin: 20px auto;
   width: 90%;
   box-sizing: border-box;
 }
 
 /* Pour réduire l'espace en bas de la card top10 si besoin */
 #top10-card {
-  margin-bottom: 0 !important; /* on annule la marge inférieure si nécessaire */
+  margin-bottom: 0 !important;
 }
 
 .charts {
@@ -37,11 +37,11 @@ h1 {
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 colonnes de largeur égale */
-  grid-auto-rows: auto;                 /* Hauteur auto pour chaque ligne */
-  gap: 20px;                            /* Espacement entre les cartes */
-  justify-items: center;                /* Centre horizontalement chaque “chart” (optionnel) */
-  align-items: start;                   /* Aligne en haut chaque bloc (optionnel) */
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: auto;
+  gap: 20px;
+  justify-items: center;
+  align-items: start;
 }
 
 .chart {
@@ -108,7 +108,7 @@ a {
 }
 
 a:hover {
-  color: #80cfff; /* plus clair au survol */
+  color: #80cfff;
 }
 
 /* Carte du monde : conserver 960x500 */
@@ -122,11 +122,11 @@ a:hover {
 /* Grille pour les pays dans la recherche de groupe */
 .grid-pays {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
-  grid-template-rows: repeat(3, auto);   /* 3 lignes fixes */
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, auto);
   gap: 10px;
   margin-top: 10px;
-  min-height: 240px; /* pour que la grille reste haute même s'il y a moins de 12 items */
+  min-height: 240px;
 }
 
 .grid-item {
@@ -271,4 +271,79 @@ a:hover {
 
 .suggestions-box li:hover {
   background-color: #333;
+}
+
+.toggle-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.toggle-section button {
+  padding: 8px 16px;
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.toggle-section button:hover {
+  background-color: #666;
+}
+
+.display-area {
+  width: 100%;
+}
+
+.legend-container {
+  margin-top: 10px;
+}
+
+.toggle-section {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.toggle-btn {
+  padding: 8px 18px;
+  background-color: #555c7a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+  background-color: #6a7090;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.toggle-section {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.toggle-btn {
+  padding: 8px 18px;
+  background-color: #555c7a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.toggle-btn.active {
+  background-color: #6a7090;
+  font-weight: bold;
 }
