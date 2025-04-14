@@ -1195,13 +1195,14 @@ function showGroupDetails(groupName) {
   let currentPage = 0;
   const itemsPerPage = 12;
   const totalPages = Math.ceil(sortedCountries.length / itemsPerPage);
+  let currentView = "sector";
 
   function renderCountryGrid(page) {
     const start = page * itemsPerPage;
     const end = start + itemsPerPage;
     const pageData = sortedCountries.slice(start, end);
 
-    const gridHTML = pageData.map(item => {
+    return pageData.map(item => {
       const flag = countryCodeToFlagEmoji(item.country);
       const label = countryNamesByIso2[item.country] || item.country || "Inconnu";
       return `
@@ -1210,79 +1211,103 @@ function showGroupDetails(groupName) {
           ${item.count} attaque${item.count > 1 ? "s" : ""}
         </div>`;
     }).join("");
-
-    return `<div class="grid-pays" style="margin-top: 10px;">${gridHTML}</div>`;
   }
 
   function renderPaginationControls() {
     return `
-      <div class="pagination">
+      <div class="pagination" id="country-pagination">
         <button class="page-btn" id="prev-country-page" ${currentPage === 0 ? "disabled" : ""}>Précédent</button>
         <span style="margin: 0 10px;">Page ${currentPage + 1} / ${totalPages}</span>
         <button class="page-btn" id="next-country-page" ${currentPage === totalPages - 1 ? "disabled" : ""}>Suivant</button>
       </div>`;
   }
 
-  function renderAll() {
-    container.innerHTML = `
-      <div style="display: flex; justify-content: space-between; gap: 20px;">
+  container.innerHTML = `
+  <div style="display: flex; gap: 20px; align-items: flex-start;">
 
-        <!-- Colonne gauche -->
-        <div style="width: 30%;">
-          <p><strong>Nom du groupe :</strong> ${groupName}</p>
-          <p><strong>Nombre total d'attaques :</strong> ${totalAttacks}</p>
-          <p><strong>Dernière victime connue :</strong> ${latest.post_title || "N/A"}</p>
-          <p><strong>Dernière publication :</strong> ${latest.published || "N/A"}</p>
-          <p><strong>Pays :</strong> ${latest.country || "N/A"}</p>
-          <p><strong>Secteur :</strong> ${latest.activity || "N/A"}</p>
-          ${
-            latest.website
-              ? `<p><strong>Site web :</strong> <a href="http://${latest.website}" target="_blank">${latest.website}</a></p>`
-              : ""
-          }
-        </div>
+    <!-- Colonne Infos -->
+    <div style="width: 30%;">
+      <p><strong>Nom du groupe :</strong> ${groupName}</p>
+      <p><strong>Nombre total d'attaques :</strong> ${totalAttacks}</p>
+      <p><strong>Dernière victime connue :</strong> ${latest.post_title || "N/A"}</p>
+      <p><strong>Dernière publication :</strong> ${latest.published || "N/A"}</p>
+      <p><strong>Pays :</strong> ${latest.country || "N/A"}</p>
+      <p><strong>Secteur :</strong> ${latest.activity || "N/A"}</p>
+      ${latest.website ? `<p><strong>Site web :</strong> <a href="http://${latest.website}" target="_blank">${latest.website}</a></p>` : ""}
+    </div>
 
-        <!-- Colonne centrale : SVG du camembert des secteurs -->
-        <div style="width: 35%; display: flex; flex-direction: column; align-items: center;">
-          <p><strong id="main-sector-info">Répartition des Secteurs Ciblés :</strong></p>
-          <!-- Camembert SVG pour les secteurs -->
-          <svg id="group-sector-pie" width="350" height="350"></svg>
-          <!-- Pagination de la légende -->
-          <div class="pagination">
-            <button class="page-btn" id="prevPageGroupActivity">Précédent</button>
-            <span id="pageInfoGroupActivity"></span>
-            <button class="page-btn" id="nextPageGroupActivity">Suivant</button>
-          </div>
-        </div>
+    <!-- Colonne Camembert / Pays -->
+    <div style="width: 70%; position: relative;">
 
-        <!-- Colonne droite -->
-        <div style="width: 30%;">
-          <p style="text-align: center;"><strong>Répartition des attaques par pays :</strong></p>
-          ${renderCountryGrid(currentPage)}
-          ${renderPaginationControls()}
-        </div>
-
+      <!-- BOUTONS TOGGLE CENTRÉS -->
+      <div style="width: 100%; display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+        <button class="toggle-btn active" id="toggle-to-sector">Voir Secteurs</button>
+        <button class="toggle-btn" id="toggle-to-country">Voir Pays</button>
       </div>
-    `;
 
-    // Affichage du camembert SVG avec légende
-    drawGroupSectorPie(groupData);
+      <!-- Bloc camembert -->
+      <div id="sector-block" style="text-align: center; margin-top: 10px;">
+        <p style="margin-bottom: -8px;"><strong>Répartition des Secteurs Ciblés :</strong></p>
+        <svg id="group-sector-pie" width="350" height="350" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="pagination" style="margin-top: 0px;">
+          <button class="page-btn" id="prevPageGroupActivity">Précédent</button>
+          <span id="pageInfoGroupActivity"></span>
+          <button class="page-btn" id="nextPageGroupActivity">Suivant</button>
+        </div>
+      </div>
 
-    // Pagination pays
-    document.getElementById("prev-country-page")?.addEventListener("click", () => {
-      if (currentPage > 0) {
-        currentPage--;
-        renderAll();
-      }
-    });
+      <!-- Bloc pays -->
+      <div id="country-block" class="hidden">
+        <p style="text-align: center;"><strong>Répartition des attaques par pays :</strong></p>
+        <div class="grid-pays" style="margin-top: 10px;">${renderCountryGrid(currentPage)}</div>
+        ${renderPaginationControls()}
+      </div>
 
-    document.getElementById("next-country-page")?.addEventListener("click", () => {
-      if (currentPage < totalPages - 1) {
-        currentPage++;
-        renderAll();
-      }
-    });
-  }
+    </div>
+  </div>
+`;
 
-  renderAll();
+  drawGroupSectorPie(groupData);
+
+  // Gestion pagination pays
+  document.getElementById("prev-country-page")?.addEventListener("click", () => {
+    if (currentPage > 0) {
+      currentPage--;
+      showGroupDetails(groupName);
+      setTimeout(() => document.getElementById(`toggle-to-${currentView}`).click(), 0);
+    }
+  });
+
+  document.getElementById("next-country-page")?.addEventListener("click", () => {
+    if (currentPage < totalPages - 1) {
+      currentPage++;
+      showGroupDetails(groupName);
+      setTimeout(() => document.getElementById(`toggle-to-${currentView}`).click(), 0);
+    }
+  });
+
+  // Toggle buttons
+  const btnSector = document.getElementById("toggle-to-sector");
+  const btnCountry = document.getElementById("toggle-to-country");
+  const sectorBlock = document.getElementById("sector-block");
+  const countryBlock = document.getElementById("country-block");
+
+  btnSector.addEventListener("click", () => {
+    currentView = "sector";
+    sectorBlock.classList.remove("hidden");
+    countryBlock.classList.add("hidden");
+    btnSector.classList.add("active");
+    btnCountry.classList.remove("active");
+  });
+
+  btnCountry.addEventListener("click", () => {
+    currentView = "country";
+    sectorBlock.classList.add("hidden");
+    countryBlock.classList.remove("hidden");
+    btnSector.classList.remove("active");
+    btnCountry.classList.add("active");
+  });
+
+  // Vue par défaut : Secteurs
+  btnSector.click();
 }
