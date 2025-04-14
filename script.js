@@ -1212,12 +1212,17 @@ function showGroupDetails(groupName) {
   const totalPages = Math.ceil(sortedCountries.length / itemsPerPage);
   let currentView = "sector";
 
-  function renderCountryGrid(page) {
+  function updateCountryGridPage(page) {
+    currentPage = page;
+
     const start = page * itemsPerPage;
     const end = start + itemsPerPage;
     const pageData = sortedCountries.slice(start, end);
 
-    return pageData.map(item => {
+    const gridContainer = document.querySelector("#country-block .grid-pays");
+    if (!gridContainer) return;
+
+    gridContainer.innerHTML = pageData.map(item => {
       const flag = countryCodeToFlagEmoji(item.country);
       const label = countryNamesByIso2[item.country] || item.country || "Inconnu";
       return `
@@ -1226,15 +1231,14 @@ function showGroupDetails(groupName) {
           ${item.count} attaque${item.count > 1 ? "s" : ""}
         </div>`;
     }).join("");
-  }
 
-  function renderPaginationControls() {
-    return `
-      <div class="pagination" id="country-pagination">
-        <button class="page-btn" id="prev-country-page" ${currentPage === 0 ? "disabled" : ""}>Précédent</button>
-        <span style="margin: 0 10px;">Page ${currentPage + 1} / ${totalPages}</span>
-        <button class="page-btn" id="next-country-page" ${currentPage === totalPages - 1 ? "disabled" : ""}>Suivant</button>
-      </div>`;
+    const paginationSpan = document.querySelector("#country-pagination span");
+    if (paginationSpan) {
+      paginationSpan.textContent = `Page ${currentPage + 1} / ${totalPages}`;
+    }
+
+    document.getElementById("prev-country-page").disabled = currentPage === 0;
+    document.getElementById("next-country-page").disabled = currentPage === totalPages - 1;
   }
 
   container.innerHTML = `
@@ -1274,8 +1278,12 @@ function showGroupDetails(groupName) {
       <!-- Bloc pays -->
       <div id="country-block" class="hidden">
         <p style="text-align: center;"><strong>Répartition des attaques par pays :</strong></p>
-        <div class="grid-pays" style="margin-top: 10px;">${renderCountryGrid(currentPage)}</div>
-        ${renderPaginationControls()}
+        <div class="grid-pays" style="margin-top: 10px;"></div>
+        <div class="pagination" id="country-pagination" style="margin-top: 10px; text-align: center;">
+          <button class="page-btn" id="prev-country-page">Précédent</button>
+          <span>Page 1 / ${totalPages}</span>
+          <button class="page-btn" id="next-country-page">Suivant</button>
+        </div>
       </div>
 
     </div>
@@ -1284,24 +1292,16 @@ function showGroupDetails(groupName) {
 
   drawGroupSectorPie(groupData);
 
-  // Gestion pagination pays
+  // Pagination pays
   document.getElementById("prev-country-page")?.addEventListener("click", () => {
-    if (currentPage > 0) {
-      currentPage--;
-      showGroupDetails(groupName);
-      setTimeout(() => document.getElementById(`toggle-to-${currentView}`).click(), 0);
-    }
+    if (currentPage > 0) updateCountryGridPage(currentPage - 1);
   });
 
   document.getElementById("next-country-page")?.addEventListener("click", () => {
-    if (currentPage < totalPages - 1) {
-      currentPage++;
-      showGroupDetails(groupName);
-      setTimeout(() => document.getElementById(`toggle-to-${currentView}`).click(), 0);
-    }
+    if (currentPage < totalPages - 1) updateCountryGridPage(currentPage + 1);
   });
 
-  // Toggle buttons
+  // Toggle
   const btnSector = document.getElementById("toggle-to-sector");
   const btnCountry = document.getElementById("toggle-to-country");
   const sectorBlock = document.getElementById("sector-block");
@@ -1321,6 +1321,7 @@ function showGroupDetails(groupName) {
     countryBlock.classList.remove("hidden");
     btnSector.classList.remove("active");
     btnCountry.classList.add("active");
+    updateCountryGridPage(currentPage);
   });
 
   // Vue par défaut : Secteurs
