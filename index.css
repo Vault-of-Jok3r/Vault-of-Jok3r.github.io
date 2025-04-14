@@ -7,6 +7,80 @@ body {
   font-family: sans-serif;
 }
 
+#main-header {
+  background-color: #1c1f2e;
+  padding: 15px 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  /* Supprimé : position: sticky; */
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.left-part {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-logo {
+  width: 40px;
+  height: 40px;
+}
+
+.header-title h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  color: white;
+}
+
+.header-title p {
+  margin: 2px 0 0 0;
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+.right-part {
+  display: flex;
+  gap: 10px;
+}
+
+.header-btn {
+  background-color: #333;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.3s;
+}
+
+.header-btn i {
+  font-size: 1rem;
+}
+
+.header-btn:hover {
+  background-color: #555;
+}
+
+.linkedin-btn {
+  background-color: #0077b5;
+}
+
+.github-btn {
+  background-color: #24292e;
+}
+
 h1 {
   text-align: center;
   margin: 0;
@@ -18,14 +92,14 @@ h1 {
   background: #272A38;
   border-radius: 8px;
   padding: 20px;
-  margin: 20px auto;
+  margin: 20px auto;  /* marge verticale par défaut */
   width: 90%;
   box-sizing: border-box;
 }
 
 /* Pour réduire l'espace en bas de la card top10 si besoin */
 #top10-card {
-  margin-bottom: 0 !important;
+  margin-bottom: 0 !important; /* on annule la marge inférieure si nécessaire */
 }
 
 .charts {
@@ -37,11 +111,11 @@ h1 {
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: auto;
-  gap: 20px;
-  justify-items: center;
-  align-items: start;
+  grid-template-columns: repeat(2, 1fr); /* 2 colonnes de largeur égale */
+  grid-auto-rows: auto;                 /* Hauteur auto pour chaque ligne */
+  gap: 20px;                            /* Espacement entre les cartes */
+  justify-items: center;                /* Centre horizontalement chaque “chart” (optionnel) */
+  align-items: start;                   /* Aligne en haut chaque bloc (optionnel) */
 }
 
 .chart {
@@ -108,7 +182,7 @@ a {
 }
 
 a:hover {
-  color: #80cfff;
+  color: #80cfff; /* plus clair au survol */
 }
 
 /* Carte du monde : conserver 960x500 */
@@ -122,11 +196,11 @@ a:hover {
 /* Grille pour les pays dans la recherche de groupe */
 .grid-pays {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(3, auto);
+  grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+  grid-template-rows: repeat(3, auto);   /* 3 lignes fixes */
   gap: 10px;
   margin-top: 10px;
-  min-height: 240px;
+  min-height: 240px; /* pour que la grille reste haute même s'il y a moins de 12 items */
 }
 
 .grid-item {
