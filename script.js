@@ -567,32 +567,38 @@ function updateWorldMap(selectedYear) {
   const height = +svgMap.attr("height");
   const projection = d3.geoNaturalEarth1();
   const path = d3.geoPath(projection);
+
   const filtered = rawData.filter(d => d.date.getFullYear() === selectedYear);
-  const attacksByCountry = d3.rollup(
-    filtered,
-    v => v.length,
-    d => d.country
+  const attacksByCountry = d3.rollup(filtered, v => v.length, d => d.country);
+
+  // 🔢 Échelle logarithmique pour meilleure lisibilité
+  const logCounts = Array.from(attacksByCountry.entries()).map(
+    ([country, count]) => [country, Math.log10(count + 1)] // log(0) impossible
   );
-  const maxAttacks = d3.max([...attacksByCountry.values()]) || 0;
+  const maxLog = d3.max(logCounts, ([, val]) => val);
+  const normalizedValues = new Map(
+    logCounts.map(([country, val]) => [country, val / maxLog])
+  );
+
   const colorScale = d3.scaleSequential()
-    .domain([0, maxAttacks])
+    .domain([0, 1])
     .interpolator(d3.interpolateReds);
 
-  // Charger le CSV de mapping pays pour enrichir les tooltips
   d3.csv("data/pays.csv").then(paysMapping => {
     const countryNames = {};
     paysMapping.forEach(d => {
       countryNames[d.iso_numeric] = d.country_name;
     });
 
-    // Charger le TopoJSON des pays
     d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json").then(worldData => {
       const countries = topojson.feature(worldData, worldData.objects.countries).features;
       projection.fitSize([width, height], { type: "FeatureCollection", features: countries });
+
       svgMap.append("path")
         .datum({ type: "Sphere" })
         .attr("fill", "#4A5472")
         .attr("d", path);
+
       svgMap.selectAll(".country")
         .data(countries)
         .enter().append("path")
@@ -603,16 +609,17 @@ function updateWorldMap(selectedYear) {
           .attr("fill", d => {
             const iso2 = iso2ById[d.id];
             if (!iso2) return "#999";
-            const val = attacksByCountry.get(iso2) || 0;
-            return colorScale(val);
+            const normVal = normalizedValues.get(iso2) || 0;
+            return colorScale(normVal);
           })
         .append("title")
         .text(d => {
           const iso2 = iso2ById[d.id] || "??";
           const countryName = countryNames[d.id] || iso2;
-          const val = attacksByCountry.get(iso2) || 0;
-          return `${countryName} (${iso2}) : ${val} attaques en ${selectedYear}`;
+          const count = attacksByCountry.get(iso2) || 0;
+          return `${countryName} (${iso2}) : ${count} attaques en ${selectedYear}`;
         });
+
       const graticule = d3.geoGraticule();
       svgMap.append("path")
         .datum(graticule())
@@ -620,30 +627,38 @@ function updateWorldMap(selectedYear) {
         .attr("stroke", "#fff")
         .attr("stroke-opacity", 0.1)
         .attr("d", path);
+
+      // 🎨 Légende
       const legendWidth = 350, legendHeight = 10;
       const legendGroup = svgMap.append("g")
         .attr("class", "legend")
         .attr("transform", `translate(${width - legendWidth - 320},${height - legendHeight - 40})`);
+
       const defs = svgMap.append("defs");
       const gradient = defs.append("linearGradient")
         .attr("id", "legend-gradient");
+
       const stops = d3.range(0, 1.01, 0.01);
       gradient.selectAll("stop")
         .data(stops)
         .enter()
         .append("stop")
         .attr("offset", d => `${d * 100}%`)
-        .attr("stop-color", d => colorScale(d * maxAttacks));
+        .attr("stop-color", d => colorScale(d));
+
       legendGroup.append("rect")
         .attr("width", legendWidth)
         .attr("height", legendHeight)
         .style("fill", "url(#legend-gradient)");
+
       const legendScale = d3.scaleLinear()
-        .domain([0, maxAttacks])
+        .domain([0, 1])
         .range([0, legendWidth]);
+
       const legendAxis = d3.axisBottom(legendScale)
         .ticks(5)
-        .tickFormat(d3.format("d"));
+        .tickFormat(d => `${Math.round(d * 100)}%`);
+
       legendGroup.append("g")
         .attr("transform", `translate(0,${legendHeight})`)
         .call(legendAxis);
